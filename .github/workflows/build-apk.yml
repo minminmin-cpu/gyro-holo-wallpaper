@@ -19,8 +19,8 @@ jobs:
           distribution: temurin
           java-version: "17"
 
-      # 只使用 GitHub 官方 action；构建与发布都走 runner 自带的 gradle / gh，
-      # 避免组织策略限制第三方 action 时整条流水线启动失败。
+      # 只用官方 action；构建与发布走 runner 自带工具。
+      # 构建日志同时写入 Job Summary，失败时无需登录即可看到原因。
       - name: Build signed APK
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
@@ -30,7 +30,16 @@ jobs:
           KS_ALIAS: ${{ secrets.KEY_ALIAS }}
           KS_KEY_PASS: ${{ secrets.KEY_PASSWORD }}
         run: |
-          set -e
+          set -o pipefail
+          {
+            echo "### 构建环境"
+            echo '```'
+            java -version 2>&1 | head -3
+            gradle --version 2>&1 | head -8
+            ls -d "$ANDROID_HOME" 2>&1
+            ls "$ANDROID_HOME" 2>&1 | head -10
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
           cd android
           if [ -n "$KS_B64" ]; then
             printf '%s' "$KS_B64" | base64 -d > app/release.jks
@@ -45,18 +54,37 @@ jobs:
               -keyalg RSA -keysize 2048 -validity 10000 \
               -storepass "$PASS" -keypass "$PASS" -dname "CN=CI, O=Holo, C=CN"
           fi
+          set +e
           KEYSTORE_FILE=app/release.jks \
           KEYSTORE_PASSWORD="$PASS" \
           KEY_ALIAS="$ALIAS" \
           KEY_PASSWORD="$KPASS" \
-            gradle :app:assembleRelease --no-daemon
+            gradle :app:assembleRelease --no-daemon --stacktrace > /tmp/build.log 2>&1
+          STATUS=$?
+          set -e
+          {
+            echo "### gradle 输出（末尾 120 行）"
+            echo '```'
+            tail -120 /tmp/build.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$STATUS" -ne 0 ]; then
+            echo "gradle 失败，退出码 $STATUS"
+            exit "$STATUS"
+          fi
           sha256sum app/build/outputs/apk/release/app-release.apk | tee ../APK_SHA256.txt
+          {
+            echo "### 产物"
+            echo '```'
+            cat ../APK_SHA256.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Publish release
+        if: success()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          set -e
           gh release create "${GITHUB_REF_NAME}" \
             android/app/build/outputs/apk/release/app-release.apk \
             APK_SHA256.txt \
