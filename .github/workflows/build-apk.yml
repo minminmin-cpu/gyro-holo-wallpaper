@@ -69,7 +69,8 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "$STATUS" -ne 0 ]; then
-            echo "gradle 失败，退出码 $STATUS"
+            MSG="$(tail -30 /tmp/build.log | tr '\n' '~' | tr -d '%' | cut -c1-1200)"
+            echo "::error title=gradle build failed::$MSG"
             exit "$STATUS"
           fi
           sha256sum app/build/outputs/apk/release/app-release.apk | tee ../APK_SHA256.txt
