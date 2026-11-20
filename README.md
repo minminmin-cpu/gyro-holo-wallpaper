@@ -1,13 +1,96 @@
-# 陀螺仪全息动态壁纸 · 阶段一
+# 流光 Holo Wallpaper · 陀螺仪全息动态壁纸
 
-把 [RuiC-card-skill](https://github.com/HRuiCcc/RuiC-card-skill) 的分层视差 + 镭射材质
-搬进一张手机动态壁纸：倾斜手机时，彩虹镭射相位、镜面高光中心与四层画面的景深一起跟着视角走。
+> 把一张照片做成会随手机倾斜流动的全息典藏卡，并设为真正的系统动态壁纸。
 
-**本仓库只含阶段一**（技术方案 + 可运行的 Web 壁纸 + Android 集成骨架）。
-阶段二已改为 **Android 生成器 App + 内置 Live Wallpaper**（放弃微信小程序），支持自定义配置文本/视觉卡片设计模型，方案见 `docs/阶段二技术方案.md`。
+![license](https://img.shields.io/badge/license-MIT-blue)
+![platform](https://img.shields.io/badge/Android-7.0%2B-3ddc84)
+![no-ai-imagegen](https://img.shields.io/badge/AI-不生成图片-orange)
 
-> **本项目完全免费、开源（MIT），不含计费 / 账号 / 广告 / 遥测。**
-> 源码公开到 GitHub，Release 提供编译签名的 APK 下载；模型由用户自己配置 endpoint 与 Key，App 直连，不经过任何中间服务。
+<p align="center">
+  <img src="docs/images/hero-card.png" width="330" alt="全息卡片默认视角">
+  <img src="docs/images/tilt-right.png" width="330" alt="倾斜后的视差与高光位移">
+</p>
+
+<p align="center"><sub>左：默认视角　右：倾斜后高光中心、镭射相位与四层景深同时位移</sub></p>
+
+## 这是什么
+
+一张照片 + 一句话描述，就能得到一张会「跟着你动」的全息典藏卡：
+
+1. 你把照片和风格描述填进 App；
+2. App 把它发给你**自己配置的**文本 / 视觉 Chat 模型；
+3. 模型只返回一份**受限的卡片设计 JSON**（标题、副标题、配色、排版、边框、装饰、景深）；
+4. 手机本地用 Canvas 把照片与设计合成为 5 张分层素材（主体 / 背景 / 文字 / 线稿 / 特效）；
+5. 倾斜手机时，GLSL 实时计算视差、镭射相位、镜面高光与时间残影。
+
+**关键点：模型不生成图片。** 它只做「排版与参数设计」，照片始终是照片本身，
+因此不会把人画歪、不会篡改五官，也不需要任何生图 API。
+
+| | |
+|---|---|
+| 无账号 / 无广告 / 无遥测 | 不收集任何数据，不联网上报 |
+| 无内置模型 | 仓库里没有任何 endpoint、API Key 或预置 provider |
+| 照片不出设备 | 只有你自己配置的模型服务会收到它，且由你直连 |
+| 双端同一套 shader | Web（WebGL1）与 Android（GLES2）共用一份 GLSL 源 |
+
+## 截图
+
+<p align="center">
+  <img src="docs/images/create-ui.png" width="240" alt="创作页：上传照片与设计描述">
+  <img src="docs/images/preview-ui.png" width="240" alt="预览页：实时视差与质感滑块">
+  <img src="docs/images/models-ui.png" width="240" alt="模型页：自配 Chat 服务">
+</p>
+
+<p align="center"><sub>创作（上传照片 + 描述 + 四段可编辑文案）　预览（实时视差 / 质感滑块 / 导出当前帧）　模型（自带 endpoint 与 Key）</sub></p>
+
+<p align="center"><sub>以上截图使用 <code>tools/generate_assets.py</code> 程序化生成的演示素材，不含任何用户照片。</sub></p>
+
+## 工作流程
+
+```mermaid
+flowchart LR
+    A["照片 + 风格描述<br/>+ 自定义文案"] --> B{"自配文本/视觉 Chat"}
+    B -->|"受限设计 JSON"| C["CardDesign<br/>字段白名单校验"]
+    C --> D["LayerBuilder<br/>本地合成 5 层 1024×1536"]
+    D --> E["card-config.json<br/>+ 分层 PNG"]
+    E --> F["Web 预览<br/>WebGL 1 draw call"]
+    E --> G["Android 动态壁纸<br/>EGL14 + GLES20"]
+    H["陀螺仪姿态<br/>+ 常驻自动巡游"] --> F
+    H --> G
+```
+
+## 技术架构
+
+| 层 | 实现 | 关键文件 |
+|---|---|---|
+| 传感器层 | `GAME_ROTATION_VECTOR` → 四元数 → 阻尼 `uView`；桌面端降级为指针 / 自动巡游 | `wallpaper/AttitudeSource.kt`、`src/gyro.js` |
+| 渲染层 | WebGL1 / GLES2，单次 `drawArrays` 画全屏 quad，5 张纹理 | `src/holo-shader.js`、`wallpaper/EglRenderer.kt` |
+| 材质层 | 分层视差 + 薄膜镭射（随视角移相）+ 扫光 glint + 时间残影 + 轮廓发光 | `shader/holo.frag` |
+| 设计层 | 模型输出严格白名单 JSON，长度 / 枚举 / 数值区间全部校验 | `model/CardDesign.kt` |
+| 合成层 | Canvas 绘制照片、边框、装饰、四段文字，并派生线稿 | `generator/LayerBuilder.kt` |
+| 系统层 | `WallpaperService` 持有 EGL Surface，可见时按 vsync 出帧、不可见即停 | `wallpaper/HoloWallpaperService.kt` |
+| 密钥层 | API Key 用 AndroidKeystore AES-GCM 加密，只存设备私有目录 | `security/KeyVault.kt` |
+
+**Shader 单一源**：`tools/sync_shader.py` 把 `src/holo-shader.js` 同步到
+`android/app/src/main/assets/shader/`，`tools/verify_android.py` 会校验两端字符数一致，
+避免 Web 与壁纸出现视觉漂移。
+
+## 编译环境
+
+| 用途 | 需要 |
+|---|---|
+| Android App / 壁纸 | JDK **17**、Android SDK **35**（platform-tools + build-tools 35）、Gradle **8.9** |
+| Web 预览与测试 | Node **18+**（`npm test` 无需浏览器） |
+| 演示素材生成 | Python **3.10+** + `Pillow`、`numpy` |
+| 像素级验收 | Chromium 内核浏览器（Edge / Chrome），由 `tests/verify_render.py` 自动驱动 |
+| 签名发布 | 4 个环境变量：`KEYSTORE_FILE` / `KEYSTORE_PASSWORD` / `KEY_ALIAS` / `KEY_PASSWORD` |
+
+```bash
+# Android
+cd android
+echo "sdk.dir=/path/to/Android/Sdk" > local.properties   # 该文件不入库
+gradle :app:assembleDebug
+```
 
 ## 快速开始
 
@@ -20,6 +103,7 @@ npm test                             # 3. 离线算法验收（Node，无需浏�
 python tools/serve.py                # 4. 启动 HTTPS 预览（默认 :8443）
 python tests/verify_render.py --capture   # 5. 无头浏览器截两帧 + 像素级验收
 ```
+
 
 - **桌面预览**：`https://localhost:8443/`（localhost 属于安全上下文，可直接用 HTTP 也行）
 - **手机真机**：`https://<局域网IP>:8443/`，需先信任 `.cert/cert.pem`；
