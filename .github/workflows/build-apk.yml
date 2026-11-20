@@ -69,7 +69,8 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           if [ "$STATUS" -ne 0 ]; then
-            MSG="$(tail -30 /tmp/build.log | tr '\n' '~' | tr -d '%' | cut -c1-1200)"
+            MSG="$(grep -E 'What went wrong|Caused by|FAILURE:|error:|Error:|Could not|Couldn.t|not found|SDK|Unsupported|requires' /tmp/build.log \
+              | grep -v '^\s*at ' | head -12 | tr '\n' '~' | tr -d '%' | cut -c1-2000)"
             echo "::error title=gradle build failed::$MSG"
             exit "$STATUS"
           fi
