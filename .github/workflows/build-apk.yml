@@ -55,7 +55,9 @@ jobs:
               -storepass "$PASS" -keypass "$PASS" -dname "CN=CI, O=Holo, C=CN"
           fi
           set +e
-          KEYSTORE_FILE=app/release.jks \
+          # KEYSTORE_FILE 由 build.gradle.kts 的 file() 解析，基准是 app 模块目录，
+          # 因此这里只能写文件名，不能写 app/release.jks（否则会拼成 android/app/app/...）。
+          KEYSTORE_FILE=release.jks \
           KEYSTORE_PASSWORD="$PASS" \
           KEY_ALIAS="$ALIAS" \
           KEY_PASSWORD="$KPASS" \
