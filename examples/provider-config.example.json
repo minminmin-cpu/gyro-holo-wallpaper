@@ -1,0 +1,15 @@
+{
+  "_comment": [
+    "示例配置，仅用于说明字段含义。仓库内不包含任何真实凭据。",
+    "apiKey 请填你自己的密钥：App 内保存时会用 AndroidKeystore 加密，只存设备私有目录。",
+    "protocol 只接受 OPENAI_CHAT_TEXT（纯文本）或 OPENAI_CHAT_VISION（可读照片）。",
+    "baseUrl 必须是文本/视觉 Chat 服务地址，不能包含 /images 路径、查询参数或内嵌凭据。"
+  ],
+  "id": "",
+  "name": "我的卡片设计模型",
+  "protocol": "OPENAI_CHAT_VISION",
+  "baseUrl": "https://your-chat-endpoint.example.com/v1",
+  "modelId": "your-model-id",
+  "apiKey": "YOUR_OWN_API_KEY",
+  "timeoutSec": 60
+}

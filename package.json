@@ -1,0 +1,13 @@
+{
+  "name": "gyro-holo-wallpaper",
+  "version": "1.0.0-stage1",
+  "private": true,
+  "type": "module",
+  "description": "Stage 1: gyroscope-driven holographic wallpaper, GLSL ported from RuiC-card-skill",
+  "scripts": {
+    "assets": "python tools/generate_assets.py",
+    "build": "python tools/build_standalone.py",
+    "serve": "python tools/serve.py",
+    "test": "node tests/smoke.mjs"
+  }
+}

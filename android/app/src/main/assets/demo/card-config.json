@@ -1,0 +1,32 @@
+{
+  "title": "流光残影",
+  "subtitle": "HOLOGRAPHIC GHOST EDITION",
+  "edition": "001 / 001",
+  "finish": 0,
+  "parameters": {
+    "subjectScale": 1.25,
+    "subjectDepth": 0.40,
+    "backgroundDepth": -0.25,
+    "effectsDepth": 0.50,
+    "foil": 0.65,
+    "glintGain": 0.85,
+    "glintSigma": 0.20,
+    "glintRange": 0.42,
+    "ghost": 0.28,
+    "cardMode": 1,
+    "cardScale": 1.0,
+    "tiltGain": 0.34,
+    "relief": 0.55,
+    "lineDepth": 0.22,
+    "trail": 0.85
+  },
+  "safeArea": { "scale": 1.0, "offset": [0.0, 0.0] },
+  "fit": [1.0, 1.0],
+  "assets": {
+    "subject": "subject.png",
+    "background": "background.png",
+    "text": "text.png",
+    "lineart": "lineart.png",
+    "effects": "effects.png"
+  }
+}

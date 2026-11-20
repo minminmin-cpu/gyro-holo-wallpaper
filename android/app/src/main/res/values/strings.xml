@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">流光壁纸</string>
+    <string name="wallpaper_label">流光 · 闪光重影</string>
+    <string name="wallpaper_description">随手机倾斜流动的镭射高光与分层重影动态壁纸</string>
+    <string name="set_wallpaper">设为动态壁纸</string>
+    <string name="intro_title">流光 · 闪光重影壁纸</string>
+    <string name="intro_body">免费开源 · 无账号 · 无广告 · 无遥测\n\n首次启动会把内置演示素材安装到应用私有目录。设为动态壁纸后，倾斜手机即可看到镭射高光与分层重影跟随视角移动。\n\n注意：多数 ROM 的动态壁纸只作用于主屏，锁屏通常是静态帧；如被省电策略限制，请把本应用加入电池优化白名单。</string>
+</resources>

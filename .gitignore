@@ -1,0 +1,60 @@
+# ---- Android / Gradle ----
+.gradle/
+build/
+**/build/
+local.properties
+*.iml
+.idea/
+.cxx/
+captures/
+.externalNativeBuild/
+
+# ---- Signing material: NEVER commit ----
+*.jks
+*.keystore
+keystore.properties
+android/app/release.jks
+
+# ---- Local HTTPS dev certificates (tools/serve.py) ----
+.cert/
+
+# ---- Python ----
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# ---- Node ----
+node_modules/
+
+# ---- Generated single-file builds (regenerate with tools/build_standalone.py) ----
+standalone.html
+
+# ---- PRIVATE / THIRD-PARTY ARTWORK: DO NOT PUBLISH ----
+# User-uploaded photos and the wallpapers generated from them.
+examples/photo-test/
+examples/**/photo-*.png
+# Frames extracted from RuiC-card-skill's demo GIFs (upstream asset, not ours).
+tests/demo-*.png
+tests/demo-*.jpg
+# Local verification screenshots (regenerate with tests/verify_render.py --capture).
+tests/shot-*.png
+app-ui/tests/shots/
+# 所有真机 / 调试截图：可能包含用户上传的照片，一律不入库。
+tests/*.png
+tests/*.jpg
+tests/*.jpeg
+tests/*.webp
+
+# ---- Local tooling / session data ----
+.workbuddy/
+
+# ---- Misc ----
+asset-validation.json
+.DS_Store
+Thumbs.db
+*.log
+
+# ---- Build logs ----
+build-log.txt
+*-build-log.txt
